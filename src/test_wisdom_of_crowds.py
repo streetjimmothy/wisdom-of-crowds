@@ -1,3 +1,5 @@
+import signal
+import faulthandler
 import pytest
 import warnings
 import networkx as nx
@@ -471,3 +473,29 @@ def test_iteratively_prune_graph():
                     'Albizzi', 'Strozzi', 'Lamberteschi', 'Ginori', 'Acciaiuoli', \
                     'Salviati', 'Pazzi', 'Pucci']:
         assert removed not in G.nodes
+
+def stress_test_s(nodes):
+    import humanize, psutil, time
+    #create fully connected graph
+    G = nx.complete_graph(nodes)
+    c = woc.Crowd(G)
+
+    start_time = time.time()
+    #get the S value for each node
+    for i, node in enumerate(G.nodes()):
+        c.S(node)
+        if i == nodes-1:
+            print("Time taken: {}".format(humanize.precisedelta(time.time() - start_time, suppress=['days', 'milliseconds', 'microseconds'])))
+            print("Memory used: {}".format(humanize.naturalsize(psutil.Process().memory_info().rss)))
+
+
+
+if __name__ == '__main__':
+    faulthandler.enable()
+
+    for i in range(4, 10):
+        print(f"Testing S for 2^{i}, {2**i} nodes")
+        try:
+            stress_test_s(2**i)
+        except Exception as e:
+            print(f"Error occurred: {e}")
